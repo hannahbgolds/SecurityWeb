@@ -4,8 +4,13 @@
     <!-- Sidebar -->
     <Sidebar :collapsed="isSidebarCollapsed" @update:collapsed="handleSidebarCollapse" />
 
+    <!-- Loading -->
+    <div v-if="loading" class="loading-container">
+      <div class="spinner"></div>
+    </div>
+
     <!-- Conteúdo -->
-    <div class="flex-1 dashboard-content overflow-auto bg-[#121212] text-white">
+    <div v-else class="flex-1 dashboard-content overflow-auto bg-[#121212] text-white">
       <h1 class="text-2xl font-bold mb-4">Envios</h1>
 
       <div>
@@ -163,6 +168,8 @@ function handleSidebarCollapse(val: boolean) {
   isSidebarCollapsed.value = val
 }
 
+const loading = ref(true)
+
 let L: any
 
 async function selecionarInfracao(ticket: string | null) {
@@ -202,6 +209,7 @@ function closeCard() {
 }
 
 onMounted(async () => {
+  loading.value = true
   const snapshot = await getDocs(collection(db, 'Envios'))
   envios.value = await Promise.all(snapshot.docs.map(async doc => {
     const data = doc.data()
@@ -230,6 +238,7 @@ onMounted(async () => {
       infracao_escolhida: data.infracao_escolhida || null
     }
   }))
+  loading.value = false
 })
 
 watch(selectedEnvio, (envio) => {
@@ -392,5 +401,25 @@ watch(selectedEnvio, async (envio) => {
   padding-left: 64px;
   padding-right: 2rem;
   padding-top: 1.5rem;
+}
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100%;
+  /* background: #121212; */
+}
+.spinner {
+  border: 8px solid #f3f3f3;
+  border-top: 8px solid #2563eb;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 </style>
