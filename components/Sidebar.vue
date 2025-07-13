@@ -29,19 +29,14 @@
         active-text-color="#409EFF"
         :class="collapsed ? 'menu-collapsed' : 'menu-expanded'"
       >
+      <el-menu-item index="/recent">
+          <el-icon><Clock /></el-icon>
+          <template #title>Reportes Recentes</template>
+        </el-menu-item>
+
         <el-menu-item index="/dashboard">
           <el-icon><Document /></el-icon>
           <template #title>Dashboard</template>
-        </el-menu-item>
-  
-        <el-menu-item index="/heatmap">
-          <el-icon><Location /></el-icon>
-          <template #title>Geração Auto</template>
-        </el-menu-item>
-  
-        <el-menu-item index="/recent">
-          <el-icon><Clock /></el-icon>
-          <template #title>Reportes Recentes</template>
         </el-menu-item>
   
         <el-menu-item index="/settings">
