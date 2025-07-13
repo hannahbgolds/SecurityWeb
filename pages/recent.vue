@@ -7,18 +7,38 @@
     <div class="flex-1 dashboard-content overflow-auto bg-[#121212] text-white">
       <h1 class="text-2xl font-bold mb-4">Envios</h1>
 
-      <!-- Cards de envios -->
-      <div class="cards-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div
-          v-for="envio in envios"
-          :key="envio.id"
-          class="envio-card cursor-pointer transition group"
-          @click="openCard(envio)"
-        >
-          <div class="flex flex-col gap-3 mb-2">
-            <div class="info-linha">
-              <span class="timestamp">{{ envio.timestamp }}</span>
-              <span class="status">{{ envio.status }}</span>
+      <div>
+        <h2 class="text-xl font-semibold mb-2">Pendente</h2>
+        <div class="cards-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div
+            v-for="envio in envios.filter(e => e.status !== 'analisado' && e.status !== 'verificado' && e.status !== 'recusado')"
+            :key="envio.id"
+            class="envio-card cursor-pointer transition group"
+            @click="openCard(envio)"
+          >
+            <div class="flex flex-col gap-3 mb-2">
+              <div class="info-linha">
+                <span class="timestamp">{{ envio.timestamp }}</span>
+                <span class="status">{{ envio.status }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="mt-8">
+        <h2 class="text-xl font-semibold mb-2">Analisado</h2>
+        <div class="cards-list grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div
+            v-for="envio in envios.filter(e => e.status === 'analisado' || e.status === 'verificado' || e.status === 'recusado')"
+            :key="envio.id"
+            class="envio-card cursor-pointer transition group"
+            @click="openCard(envio)"
+          >
+            <div class="flex flex-col gap-3 mb-2">
+              <div class="info-linha">
+                <span class="timestamp">{{ envio.timestamp }}</span>
+                <span class="status">{{ envio.status }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -29,39 +49,50 @@
         <div v-if="cardFlutuanteVisivel" class="card-flutuante-overlay" @click.self="closeCard">
           <div class="card-flutuante bg-[#232a3b] text-white rounded-2xl shadow-2xl p-8 max-w-lg w-full relative border border-blue-200">
             <button class="absolute top-3 right-3 text-gray-400 hover:text-blue-300 text-2xl" @click="closeCard">&times;</button>
-            <div class="text-lg font-bold mb-2 text-white">Data: {{ selectedEnvio?.timestamp }}</div>
             <div class="text-base font-medium text-blue-200 mb-2"><strong>Localização:</strong> <span class="font-normal text-white">{{ selectedEnvio?.endereco || '---' }}</span></div>
             <div class="text-sm text-white space-y-3">
-              <p><strong>Modelo:</strong> {{ selectedEnvio?.veiculo?.modelo || '---' }}</p>
-              <p><strong>Placa:</strong> {{ selectedEnvio?.veiculo?.placa || '---' }}</p>
-              <p><strong>Cor:</strong> {{ selectedEnvio?.veiculo?.cor || '---' }}</p>
+              <p><strong>Placa:</strong> {{ selectedEnvio?.placa || '---' }}</p>
+              <p><strong>Modelo:</strong> {{ selectedEnvio?.modelo || '---' }}</p>
+              <p><strong>Cor:</strong> {{ selectedEnvio?.cor || '---' }}</p>
 
-              <!-- Botões de seleção de infração -->
-              <div class="mt-4 flex flex-wrap gap-2">
+              <p><strong>Possíveis infrações:</strong></p>
+              <div v-if="selectedEnvio?.law_references?.length" class="flex flex-wrap gap-2">
                 <el-button
-                  v-for="(i, idx) in (selectedEnvio?.infracoes || []).slice(0, 5)"
+                  v-for="(ref, idx) in selectedEnvio.law_references"
                   :key="idx"
-                  :type="selectedInfracao === i ? 'primary' : 'default'"
-                  @click="() => selecionarInfracao(i)"
+                  :type="selectedInfracao === ref.ticket ? 'primary' : 'default'"
+                  @click="() => selecionarInfracao(ref.ticket)"
                 >
-                  {{ i }}
+                  {{ ref.ticket }}
                 </el-button>
+                <!-- Botão para 'Não houve infração' -->
                 <el-button
-                  :type="selectedInfracao === 'Não houve infração.' ? 'primary' : 'default'"
-                  @click="() => selecionarInfracao('Não houve infração.')"
+                  :type="selectedInfracao === null ? 'danger' : 'default'"
+                  @click="() => selecionarInfracao(null)"
                 >
-                  Não houve infração.
+                  Não houve infração
                 </el-button>
               </div>
+              <p v-else>Nenhuma infração encontrada.</p>
 
-              <p><strong>Vídeo:</strong></p>
-              <div v-if="selectedEnvio?.videoURL" class="video-thumbnail-wrapper">
-                <div class="video-link" @click="dialogVideoVisible = true">
-                  <video :src="selectedEnvio.videoURL" class="video-thumbnail" preload="metadata" />
-                  <div class="video-overlay">▶</div>
+              <div class="flex flex-row gap-4 items-start mt-4">
+                <div class="flex-1">
+                  <p><strong>Vídeo:</strong></p>
+                  <div v-if="selectedEnvio?.videoURL" class="video-thumbnail-wrapper">
+                    <div class="video-link" @click="dialogVideoVisible = true">
+                      <video :src="selectedEnvio.videoURL" class="video-thumbnail" preload="metadata" />
+                      <div class="video-overlay">▶</div>
+                    </div>
+                  </div>
+                  <p v-else>Sem vídeo disponível.</p>
+                </div>
+                <div class="flex-1">
+                  <p><strong>Mapa:</strong></p>
+                  <client-only>
+                    <div v-if="selectedEnvio?.location" :id="'mini-map-' + selectedEnvio.id" class="mini-map"></div>
+                  </client-only>
                 </div>
               </div>
-              <p v-else>Sem vídeo disponível.</p>
 
               <!-- Diálogo com o vídeo em tamanho maior -->
               <el-dialog v-model="dialogVideoVisible" width="30%" :before-close="() => (dialogVideoVisible = false)">
@@ -83,20 +114,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { db } from '@/composables/useFirebase'
 import Sidebar from '@/components/Sidebar.vue'
-import { getAddressFromCoords } from '@/composables/useReverseGeocode'
 import {
   collection,
   getDocs,
-  query,
-  where,
-  doc as firestoreDoc,
-  updateDoc
+  updateDoc,
+  doc as firestoreDoc
 } from 'firebase/firestore'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+
+interface LawReference {
+  law_reference: string
+  score: number
+  ticket: string
+}
 
 interface Envio {
   id: string
@@ -104,26 +138,42 @@ interface Envio {
   timestamp: string
   userID: string
   videoURL: string
-  location: {
-    latitude: number
-    longitude: number
-  }
-  endereco: string
-  infracoes: string[]
-  veiculo?: {
-    modelo: string
-    placa: string
-    cor: string
-  }
+  modelo: string
+  placa: string
+  cor: string
+  infracao: string
+  possivel_infracao: string
+  law_references: LawReference[]
+  location: [number, number]
 }
 
 const envios = ref<Envio[]>([])
 const selectedEnvio = ref<Envio | null>(null)
 const cardFlutuanteVisivel = ref(false)
 const dialogVideoVisible = ref(false)
-const selectedInfracao = ref<string>('')
+const selectedInfracao = ref<string | null>(null)
+
+async function selecionarInfracao(ticket: string | null) {
+  selectedInfracao.value = ticket
+  if (!selectedEnvio.value) return
+  const envioDocRef = firestoreDoc(db, 'Envios', selectedEnvio.value.id)
+  let novoStatus = ''
+  if (ticket === null) {
+    novoStatus = 'recusado'
+  } else {
+    novoStatus = 'verificado'
+  }
+  // Atualiza no Firestore
+  await updateDoc(envioDocRef, { status: novoStatus })
+  // Atualiza localmente para refletir na UI
+  selectedEnvio.value.status = novoStatus
+  // Também atualiza na lista principal
+  const idx = envios.value.findIndex(e => e.id === selectedEnvio.value?.id)
+  if (idx !== -1) envios.value[idx].status = novoStatus
+}
 
 function openCard(envio: Envio) {
+  selectedInfracao.value = null // Limpa seleção ao abrir novo card
   selectedEnvio.value = envio
   cardFlutuanteVisivel.value = true
 }
@@ -132,66 +182,67 @@ function closeCard() {
   selectedEnvio.value = null
 }
 
-async function selecionarInfracao(val: string) {
-  selectedInfracao.value = val
-  if (selectedEnvio.value) {
-    selectedEnvio.value.status = 'analisado'
-    // Atualiza também na tabela principal
-    const index = envios.value.findIndex(e => e.id === selectedEnvio.value?.id)
-    if (index !== -1) {
-      envios.value[index].status = 'analisado'
-    }
-    // Atualiza no Firestore
-    const envioDocRef = firestoreDoc(db, 'Envios', selectedEnvio.value.id)
-    await updateDoc(envioDocRef, { status: 'analisado' })
-  }
-}
-
 onMounted(async () => {
   const snapshot = await getDocs(collection(db, 'Envios'))
-
-  const docs = snapshot.docs.map(async (doc) => {
+  envios.value = snapshot.docs.map(doc => {
     const data = doc.data()
-    const endereco = await getAddressFromCoords(
-      data.location.latitude,
-      data.location.longitude
-    )
-
-    const timestampDate = data.timestamp.toDate()
-    const formattedDate = format(timestampDate, "dd 'de' MMMM 'de' yyyy 'às' HH:mm:ss", {
-      locale: ptBR,
-    })
-
-    // 🔍 Infrações
-    const envioRef = firestoreDoc(db, 'Envios', doc.id)
-    const infraSnapshot = await getDocs(
-      query(collection(db, 'Infracoes'), where('envioRef', '==', envioRef))
-    )
-    const infracoes = infraSnapshot.docs.map(d => d.data().descricao)
-
-    // 🔍 Veículo
-    const veiculoSnapshot = await getDocs(
-      query(collection(db, 'Veiculo'), where('envioRef', '==', envioRef))
-    )
-    const veiculoData = veiculoSnapshot.docs[0]?.data()
-
+    console.log('law_references', data.law_references) // <-- Adicionado para debug
+    const timestampDate = data.timestamp?.toDate ? data.timestamp.toDate() : new Date()
+    const formattedDate = format(timestampDate, "dd 'de' MMMM 'de' yyyy 'às' HH:mm:ss", { locale: ptBR })
     return {
       id: doc.id,
-      ...data,
-      endereco,
+      status: data.status,
       timestamp: formattedDate,
-      infracoes,
-      veiculo: veiculoData
-        ? {
-            modelo: veiculoData.modelo,
-            placa: veiculoData.placa,
-            cor: veiculoData.cor
-          }
-        : undefined
-    } as Envio
+      userID: data.userID,
+      videoURL: data.videoURL,
+      modelo: data.Modelo || data.modelo,
+      placa: data.Placa || data.placa,
+      cor: data.Cor || data.cor,
+      infracao: data.infracao,
+      possivel_infracao: data['possível infração'] || data.possivel_infracao,
+      law_references: Array.isArray(data.infracao?.law_references)
+        ? data.infracao.law_references
+        : Object.values(data.infracao?.law_references || {}),
+      location: data.location
+    }
   })
+})
 
-  envios.value = await Promise.all(docs)
+watch(selectedEnvio, (envio) => {
+  if (!envio) return
+  // Define o botão selecionado de acordo com o status
+  if (envio.status === 'verificado') {
+    // Se já foi verificado, seleciona a primeira infração (ou mantenha a última selecionada, se quiser)
+    selectedInfracao.value = envio.law_references?.[0]?.ticket || null
+  } else if (envio.status === 'recusado') {
+    selectedInfracao.value = null
+  } else {
+    selectedInfracao.value = null
+  }
+})
+
+watch(selectedEnvio, async (envio) => {
+  if (envio && process.client && envio.location) {
+    if (!L) {
+      L = await import('leaflet')
+      await import('leaflet/dist/leaflet.css')
+    }
+    setTimeout(() => {
+      const mapId = 'mini-map-' + envio.id
+      const mapDiv = document.getElementById(mapId)
+      if (mapDiv && !mapDiv._leaflet_id) {
+        const map = L.map(mapId, {
+          center: [envio.location[0], envio.location[1]],
+          zoom: 15,
+          attributionControl: false
+        })
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: ''
+        }).addTo(map)
+        L.marker([envio.location[0], envio.location[1]]).addTo(map)
+      }
+    }, 100)
+  }
 })
 </script>
 
@@ -290,9 +341,18 @@ onMounted(async () => {
 .dashboard-content {
   padding-left: 64px;
 }
+.mini-map {
+  width: 180px;
+  height: 120px;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  margin-top: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
 @keyframes popin {
   from { transform: scale(0.95); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
 </style>
-  
+  console.log("law_references", data.law_references);
+console.log("law_references", data.law_references);

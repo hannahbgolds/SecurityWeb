@@ -51,6 +51,18 @@ const chartOptions = ref({
   }
 })
 
+const selectedInfracao = ref<string | null>(null)
+
+function selecionarInfracao(ticket: string) {
+  selectedInfracao.value = ticket
+}
+
+function openCard(envio: Envio) {
+  selectedInfracao.value = null // Limpa seleção ao abrir novo card
+  selectedEnvio.value = envio
+  cardFlutuanteVisivel.value = true
+}
+
 onMounted(async () => {
   const snapshot = await getDocs(collection(db, 'Infracoes'))
 
