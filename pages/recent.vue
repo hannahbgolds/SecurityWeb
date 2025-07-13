@@ -63,14 +63,18 @@
 
               <p><strong>Possíveis infrações:</strong></p>
               <div v-if="selectedEnvio?.law_references?.length" class="flex flex-wrap gap-2">
-                <el-button
-                  v-for="(ref, idx) in selectedEnvio.law_references"
-                  :key="idx"
-                  :type="selectedInfracao === ref.ticket ? 'primary' : 'default'"
-                  @click="() => selecionarInfracao(ref.ticket)"
-                >
-                  {{ ref.ticket }}
-                </el-button>
+                <div v-for="(ref, idx) in selectedEnvio.law_references" :key="idx">
+                  <el-button
+                    :type="selectedInfracao === ref.ticket ? 'primary' : 'default'"
+                    @click="() => selecionarInfracao(ref.ticket)"
+                    class="law-ref-btn"
+                  >
+                    <div class="law-ref-btn-content">
+                      <div class="law-ref-label">{{ ref.law_reference }}</div>
+                      <div class="law-ref-ticket">{{ ref.ticket }}</div>
+                    </div>
+                  </el-button>
+                </div>
                 <!-- Botão para 'Não houve infração' -->
                 <el-button
                   :type="selectedInfracao === null ? 'danger' : 'default'"
@@ -163,9 +167,20 @@ const cardFlutuanteVisivel = ref(false)
 const dialogVideoVisible = ref(false)
 const selectedInfracao = ref<string | null>(null)
 const isSidebarCollapsed = ref(false)
+const showLawReference = ref<string | null>(null)
+const lawReferenceText = ref('')
 
 function handleSidebarCollapse(val: boolean) {
   isSidebarCollapsed.value = val
+}
+
+function handleLawRefShow(refObj: any) {
+  showLawReference.value = refObj.ticket
+  lawReferenceText.value = refObj.law_reference || ''
+}
+function handleLawRefHide() {
+  showLawReference.value = null
+  lawReferenceText.value = ''
 }
 
 const loading = ref(true)
@@ -421,5 +436,25 @@ watch(selectedEnvio, async (envio) => {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+.law-ref-btn {
+  margin-bottom: 8px;
+  margin-right: 10px;
+}
+.law-ref-btn .law-ref-btn-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+.law-ref-label {
+  font-size: 0.85em;
+  color: #2563eb;
+  margin-bottom: 2px;
+  font-weight: 500;
+}
+.law-ref-ticket {
+  font-size: 1em;
+  color: inherit;
 }
 </style>
