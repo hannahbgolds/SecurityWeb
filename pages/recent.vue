@@ -37,6 +37,20 @@
               <li v-for="(i, index) in selectedEnvio.infracoes" :key="index">• {{ i }}</li>
             </ul>
             <p v-else>Nenhuma infração encontrada.</p>
+
+            <!-- Dropdown de seleção de infração -->
+            <div class="mt-4">
+              <el-select v-model="selectedInfracao" placeholder="Selecione uma infração" style="width: 100%">
+                <el-option
+                  v-for="(i, idx) in selectedEnvio?.infracoes"
+                  :key="idx"
+                  :label="i"
+                  :value="i"
+                />
+                <el-option label="Não houve infração." value="Não houve infração." />
+              </el-select>
+              <el-button type="primary" class="mt-2 w-full" @click="confirmarInfracao">Confirmar</el-button>
+            </div>
   
             <p><strong>Vídeo:</strong></p>
             <div v-if="selectedEnvio?.videoURL" class="video-thumbnail-wrapper">
@@ -102,10 +116,18 @@
   const selectedEnvio = ref<Envio | null>(null)
   const drawerVisible = ref(false)
   const dialogVideoVisible = ref(false)
-  
+  const selectedInfracao = ref<string>('')
+
   function handleRowClick(row: Envio) {
     selectedEnvio.value = row
     drawerVisible.value = true
+  }
+
+  function confirmarInfracao() {
+    if (selectedEnvio.value) {
+      selectedEnvio.value.status = 'analisado'
+      // Aqui você pode adicionar lógica extra, como salvar no banco, se desejar
+    }
   }
   
   onMounted(async () => {
