@@ -9,7 +9,7 @@
           placement="right"
         >
           <el-button
-            @click="collapsed = !collapsed"
+            @click="toggleSidebar"
             circle
             size="small"
             class="bg-[#2a2a2a] hover:bg-[#3a3a3a] text-white border-none"
@@ -53,7 +53,7 @@
   </template>
   
   <script setup>
-  import { ref, computed } from 'vue'
+  import { ref, computed, defineProps, defineEmits, watch } from 'vue'
   import { useRoute } from 'vue-router'
   import {
     Expand,
@@ -63,10 +63,23 @@
     Setting
   } from '@element-plus/icons-vue'
   
-  const collapsed = ref(false)
+  const props = defineProps({
+    collapsed: Boolean
+  })
+  const emit = defineEmits(['update:collapsed'])
+
+  const collapsed = ref(props.collapsed ?? false)
   const route = useRoute()
   const activeRoute = computed(() => route.path)
 
+  function toggleSidebar() {
+    collapsed.value = !collapsed.value
+    emit('update:collapsed', collapsed.value)
+  }
+
+  watch(() => props.collapsed, (val) => {
+    if (typeof val === 'boolean') collapsed.value = val
+  })
   </script>  
   
   <style scoped>

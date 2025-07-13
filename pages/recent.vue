@@ -1,7 +1,8 @@
 <template>
   <div class="flex h-screen">
+    <div :class="isSidebarCollapsed ? 'page-container-collapsed' : 'page-container-expanded'">
     <!-- Sidebar -->
-    <Sidebar />
+    <Sidebar :collapsed="isSidebarCollapsed" @update:collapsed="handleSidebarCollapse" />
 
     <!-- Conteúdo -->
     <div class="flex-1 dashboard-content overflow-auto bg-[#121212] text-white">
@@ -110,6 +111,7 @@
         </div>
       </transition>
     </div>
+    </div>
   </div>
 </template>
 
@@ -155,6 +157,11 @@ const selectedEnvio = ref<Envio | null>(null)
 const cardFlutuanteVisivel = ref(false)
 const dialogVideoVisible = ref(false)
 const selectedInfracao = ref<string | null>(null)
+const isSidebarCollapsed = ref(false)
+
+function handleSidebarCollapse(val: boolean) {
+  isSidebarCollapsed.value = val
+}
 
 let L: any
 
@@ -374,6 +381,16 @@ watch(selectedEnvio, async (envio) => {
   from { transform: scale(0.95); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
 }
+.page-container-expanded {
+  transition: padding-left 0.3s;
+  padding-left: 240px;
+  padding-right: 2rem;
+  padding-top: 1.5rem;
+}
+.page-container-collapsed {
+  transition: padding-left 0.3s;
+  padding-left: 64px;
+  padding-right: 2rem;
+  padding-top: 1.5rem;
+}
 </style>
-  console.log("law_references", data.law_references);
-console.log("law_references", data.law_references);
