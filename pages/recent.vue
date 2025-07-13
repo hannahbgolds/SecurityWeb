@@ -125,6 +125,7 @@ import {
 } from 'firebase/firestore'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { getAddressFromCoords } from '@/composables/useReverseGeocode'
 
 interface LawReference {
   law_reference: string
@@ -145,6 +146,7 @@ interface Envio {
   possivel_infracao: string
   law_references: LawReference[]
   location: [number, number]
+  endereco: string
 }
 
 const envios = ref<Envio[]>([])
@@ -184,28 +186,32 @@ function closeCard() {
 
 onMounted(async () => {
   const snapshot = await getDocs(collection(db, 'Envios'))
-  envios.value = snapshot.docs.map(doc => {
+  envios.value = await Promise.all(snapshot.docs.map(async doc => {
     const data = doc.data()
-    console.log('law_references', data.law_references) // <-- Adicionado para debug
     const timestampDate = data.timestamp?.toDate ? data.timestamp.toDate() : new Date()
     const formattedDate = format(timestampDate, "dd 'de' MMMM 'de' yyyy 'às' HH:mm:ss", { locale: ptBR })
+    let endereco = '---'
+    if (data.location && typeof data.location.latitude === 'number' && typeof data.location.longitude === 'number') {
+      endereco = await getAddressFromCoords(data.location.latitude, data.location.longitude)
+    }
     return {
       id: doc.id,
       status: data.status,
       timestamp: formattedDate,
       userID: data.userID,
       videoURL: data.videoURL,
-      modelo: data.Modelo || data.modelo,
-      placa: data.Placa || data.placa,
-      cor: data.Cor || data.cor,
+      modelo: data.infracao?.modelo || '',
+      placa: data.infracao?.placa || '',
+      cor: data.infracao?.cor || '',
       infracao: data.infracao,
       possivel_infracao: data['possível infração'] || data.possivel_infracao,
       law_references: Array.isArray(data.infracao?.law_references)
         ? data.infracao.law_references
         : Object.values(data.infracao?.law_references || {}),
-      location: data.location
+      location: data.location,
+      endereco
     }
-  })
+  }))
 })
 
 watch(selectedEnvio, (envio) => {
