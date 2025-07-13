@@ -57,6 +57,9 @@ interface EnvioData {
   location?: any
 }
 
+let leafletMap: any = null; // fora do onMounted
+let leafletMarkers: any[] = []; // para guardar os marcadores
+
 onMounted(async () => {
   const enviosSnap = await getDocs(collection(db, 'Envios'))
   const envios: EnvioData[] = enviosSnap.docs.map(doc => {
@@ -166,32 +169,47 @@ onMounted(async () => {
     }]
   }
 
-  // Inicialização do heatmap
+  // Inicialização do mapa com pins de infrações
   if (process.client) {
     const L = (await import('leaflet')).default
     await import('leaflet/dist/leaflet.css')
-    // @ts-ignore: leaflet.heat não tem tipos TypeScript
-    const { default: heat } = await import('leaflet.heat')
 
+    // Filtra e coleta os pontos de infração (igual ao mini-mapa dos cards)
     const pontos = envios
       .filter(e => ['analisado', 'verificado'].includes(e.status))
       .map(e => {
         const loc = e.location || e.infracao?.location
-        if (loc && typeof loc.latitude === 'number' && typeof loc.longitude === 'number') {
-          return [loc.latitude, loc.longitude, 1]
+        if (loc) {
+          const lat = Array.isArray(loc) ? loc[0] : loc.latitude
+          const lng = Array.isArray(loc) ? loc[1] : loc.longitude
+          if (typeof lat === 'number' && typeof lng === 'number') {
+            return [lat, lng]
+          }
         }
         return null
       })
       .filter(Boolean)
 
-    // Só inicializa o mapa se o container existir
+    console.log('Pontos para pins:', pontos)
+
     const mapDiv = document.getElementById('heatmap')
-    if (mapDiv) {
-      const map = L.map('heatmap').setView([-23.56, -46.65], 12)
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: ''
-      }).addTo(map)
-      heat(pontos, { radius: 25, blur: 15, maxZoom: 17 }).addTo(map)
+    if (mapDiv && pontos.length > 0) {
+      if (!leafletMap) {
+        // Cria o mapa só uma vez
+        const [centerLat, centerLng] = pontos[0]
+        leafletMap = L.map('heatmap').setView([centerLat, centerLng], 15)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          attribution: ''
+        }).addTo(leafletMap)
+      }
+      // Remove marcadores antigos
+      leafletMarkers.forEach(marker => leafletMap.removeLayer(marker))
+      leafletMarkers = []
+      // Adiciona novos marcadores
+      pontos.forEach(([lat, lng]) => {
+        const marker = L.marker([lat, lng]).addTo(leafletMap)
+        leafletMarkers.push(marker)
+      })
     }
   }
 
@@ -210,6 +228,9 @@ onMounted(async () => {
   border-radius: 1rem;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   padding: 1.5rem;
+}
+.card-dashboard:not(:last-child) {
+  margin-bottom: 2rem;
 }
 .card-title {
   font-size: 1.125rem;
