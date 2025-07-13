@@ -71,7 +71,7 @@
                     class="law-ref-btn"
                   >
                     <div class="law-ref-btn-content">
-                      <div class="law-ref-label">{{ ref.law_reference }}</div>
+                      <span class="capitulo-label">{{ ref.law_reference }}</span>
                       <div class="law-ref-ticket">{{ ref.ticket }}</div>
                     </div>
                   </el-button>
@@ -86,8 +86,8 @@
               </div>
               <p v-else>Nenhuma infração encontrada.</p>
 
-              <div class="flex flex-row gap-4 items-start mt-4">
-                <div class="flex-1">
+              <div class="flex flex-row gap-4 items-start mt-4 video-map-row">
+                <div class="flex-1 video-block">
                   <p><strong>Vídeo:</strong></p>
                   <div v-if="selectedEnvio?.videoURL" class="video-thumbnail-wrapper">
                     <div class="video-link" @click="dialogVideoVisible = true">
@@ -97,8 +97,8 @@
                   </div>
                   <p v-else>Sem vídeo disponível.</p>
                 </div>
-                <div class="flex-1">
-                  <p><strong>Mapa:</strong></p>
+                <div class="flex-1 map-block">
+                  <div class="map-label"><strong>Mapa:</strong></div>
                   <client-only>
                     <div v-if="selectedEnvio?.location" :id="'mini-map-' + selectedEnvio.id" class="mini-map"></div>
                   </client-only>
@@ -361,8 +361,8 @@ watch(selectedEnvio, async (envio) => {
 }
 .video-thumbnail-wrapper {
   position: relative;
-  width: 100%;
-  max-width: 320px;
+  width: 320px;
+  max-width: 100%;
   aspect-ratio: 16 / 9;
   margin-bottom: 1em;
 }
@@ -395,12 +395,34 @@ watch(selectedEnvio, async (envio) => {
   padding-left: 64px;
 }
 .mini-map {
-  width: 180px;
+  width: 220px;
   height: 120px;
   border-radius: 0.75rem;
   overflow: hidden;
-  margin-top: 0.5rem;
+  margin-top: 16px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+.video-map-row {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  align-items: flex-start;
+}
+.video-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 0 0 auto;
+}
+.map-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  flex: 0 0 auto;
+}
+.map-label {
+  margin-top: 16px;
+  margin-bottom: 2px;
 }
 @keyframes popin {
   from { transform: scale(0.95); opacity: 0; }
@@ -461,5 +483,10 @@ watch(selectedEnvio, async (envio) => {
 .close-btn-gap {
   display: block;
   height: 16px;
+}
+.capitulo-label {
+  color: #1e293b;
+  font-weight: bold;
+  font-size: 0.95em;
 }
 </style>
