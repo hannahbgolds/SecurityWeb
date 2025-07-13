@@ -21,47 +21,45 @@
   
         <!-- Drawer de detalhes -->
         <el-drawer v-model="drawerVisible" direction="rtl" size="30%">
-  <template #title>
-    <div class="text-lg font-bold text-gray-800">
-      Data: {{ selectedEnvio?.timestamp }}
-    </div>
-  </template>
-
-  <div class="text-sm text-gray-700 space-y-3">
-    <p><strong>Modelo:</strong> {{ selectedEnvio?.veiculo?.modelo || '---' }}</p>
-    <p><strong>Placa:</strong> {{ selectedEnvio?.veiculo?.placa || '---' }}</p>
-    <p><strong>Cor:</strong> {{ selectedEnvio?.veiculo?.cor || '---' }}</p>
-
-    <p><strong>Infrações:</strong></p>
-    <ul v-if="selectedEnvio?.infracoes?.length">
-      <li v-for="(i, index) in selectedEnvio.infracoes" :key="index">• {{ i }}</li>
-    </ul>
-    <p v-else>Nenhuma infração encontrada.</p>
-
-    <p><strong>Vídeo:</strong></p>
-<div v-if="selectedEnvio?.videoURL" class="video-thumbnail-wrapper">
-  <div class="video-link" @click="dialogVideoVisible = true">
-    <video :src="selectedEnvio.videoURL" class="video-thumbnail" preload="metadata" />
-    <div class="video-overlay">▶</div>
-  </div>
-</div>
-<p v-else>Sem vídeo disponível.</p>
-
-<!-- Diálogo com o vídeo em tamanho maior -->
-<el-dialog v-model="dialogVideoVisible" width="30%" :before-close="() => (dialogVideoVisible = false)">
-  <template #title>Visualização do Vídeo</template>
-  <video
-    v-if="selectedEnvio?.videoURL"
-    :src="selectedEnvio.videoURL"
-    controls
-    autoplay
-    style="width: 100%; border-radius: 8px"
-  ></video>
-</el-dialog>
-
-
-  </div>
-</el-drawer>
+          <template #title>
+            <div class="text-lg font-bold text-gray-800">
+              Data: {{ selectedEnvio?.timestamp }}
+            </div>
+          </template>
+  
+          <div class="text-sm text-gray-700 space-y-3">
+            <p><strong>Modelo:</strong> {{ selectedEnvio?.veiculo?.modelo || '---' }}</p>
+            <p><strong>Placa:</strong> {{ selectedEnvio?.veiculo?.placa || '---' }}</p>
+            <p><strong>Cor:</strong> {{ selectedEnvio?.veiculo?.cor || '---' }}</p>
+  
+            <p><strong>Infrações:</strong></p>
+            <ul v-if="selectedEnvio?.infracoes?.length">
+              <li v-for="(i, index) in selectedEnvio.infracoes" :key="index">• {{ i }}</li>
+            </ul>
+            <p v-else>Nenhuma infração encontrada.</p>
+  
+            <p><strong>Vídeo:</strong></p>
+            <div v-if="selectedEnvio?.videoURL" class="video-thumbnail-wrapper">
+              <div class="video-link" @click="dialogVideoVisible = true">
+                <video :src="selectedEnvio.videoURL" class="video-thumbnail" preload="metadata" />
+                <div class="video-overlay">▶</div>
+              </div>
+            </div>
+            <p v-else>Sem vídeo disponível.</p>
+  
+            <!-- Diálogo com o vídeo em tamanho maior -->
+            <el-dialog v-model="dialogVideoVisible" width="30%" :before-close="() => (dialogVideoVisible = false)">
+              <template #title>Visualização do Vídeo</template>
+              <video
+                v-if="selectedEnvio?.videoURL"
+                :src="selectedEnvio.videoURL"
+                controls
+                autoplay
+                style="width: 100%; border-radius: 8px"
+              ></video>
+            </el-dialog>
+          </div>
+        </el-drawer>
       </div>
     </div>
   </template>
@@ -79,7 +77,6 @@
   } from 'firebase/firestore'
   import { format } from 'date-fns'
   import { ptBR } from 'date-fns/locale'
-  
   
   interface Envio {
     id: string
@@ -126,14 +123,16 @@
       })
   
       // 🔍 Infrações
+      const envioRef = `/Envios/${doc.id}`
+      console.log("🔍 Consultando infrações com envioRef:", envioRef)
       const infraSnapshot = await getDocs(
-        query(collection(db, 'Infracoes'), where('envioRef', '==', `/Envios/${doc.id}`))
+        query(collection(db, 'Infracoes'), where('envioRef', '==', envioRef))
       )
       const infracoes = infraSnapshot.docs.map(d => d.data().descricao)
   
       // 🔍 Veículo
       const veiculoSnapshot = await getDocs(
-        query(collection(db, 'Veiculo'), where('envioRef', '==', `/Envios/${doc.id}`))
+        query(collection(db, 'Veiculo'), where('envioRef', '==', envioRef))
       )
       const veiculoData = veiculoSnapshot.docs[0]?.data()
   
@@ -147,7 +146,7 @@
           ? {
               modelo: veiculoData.modelo,
               placa: veiculoData.placa,
-              cor: veiculoData.Cor
+              cor: veiculoData.cor
             }
           : undefined
       } as Envio
@@ -157,45 +156,45 @@
   })
   </script>
   
-
-<style scoped>
-.video-thumbnail-wrapper {
-  position: relative;
-  width: 100%;
-  max-width: 320px;
-  aspect-ratio: 16 / 9;
-  margin-bottom: 1em;
-}
-
-.video-link {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
-}
-
-.video-thumbnail {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 8px;
-  pointer-events: none;
-}
-
-.video-overlay {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 32px;
-  color: white;
-  background-color: rgba(0, 0, 0, 0.6);
-  padding: 8px 14px;
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-.dashboard-content {
-  padding-left: 64px;    
-}
-</style>
+  <style scoped>
+  .video-thumbnail-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 320px;
+    aspect-ratio: 16 / 9;
+    margin-bottom: 1em;
+  }
+  
+  .video-link {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+  }
+  
+  .video-thumbnail {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    pointer-events: none;
+  }
+  
+  .video-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 32px;
+    color: white;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 8px 14px;
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  
+  .dashboard-content {
+    padding-left: 64px;
+  }
+  </style>
+  
