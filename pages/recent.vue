@@ -55,6 +55,7 @@
         <div v-if="cardFlutuanteVisivel" class="card-flutuante-overlay" @click.self="closeCard">
           <div class="card-flutuante bg-[#232a3b] text-white rounded-2xl shadow-2xl p-8 max-w-lg w-full relative border border-blue-200">
             <button class="absolute top-3 right-3 text-gray-400 hover:text-blue-300 text-2xl" @click="closeCard">&times;</button>
+            <span class="close-btn-gap"></span>
             <div class="text-base font-medium text-blue-200 mb-2"><strong>Localização:</strong> <span class="font-normal text-white">{{ selectedEnvio?.endereco || '---' }}</span></div>
             <div class="text-sm text-white space-y-3">
               <p><strong>Placa:</strong> {{ selectedEnvio?.placa || '---' }}</p>
@@ -456,5 +457,9 @@ watch(selectedEnvio, async (envio) => {
 .law-ref-ticket {
   font-size: 1em;
   color: inherit;
+}
+.close-btn-gap {
+  display: block;
+  height: 16px;
 }
 </style>
