@@ -36,12 +36,12 @@
   
         <el-menu-item index="/heatmap">
           <el-icon><Location /></el-icon>
-          <template #title>Heatmap</template>
+          <template #title>Geração Auto</template>
         </el-menu-item>
   
         <el-menu-item index="/recent">
           <el-icon><Clock /></el-icon>
-          <template #title>Reportes recentes</template>
+          <template #title>Reportes Recentes</template>
         </el-menu-item>
   
         <el-menu-item index="/settings">
@@ -66,6 +66,7 @@
   const collapsed = ref(false)
   const route = useRoute()
   const activeRoute = computed(() => route.path)
+
   </script>  
   
   <style scoped>

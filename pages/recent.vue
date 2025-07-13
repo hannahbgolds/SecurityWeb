@@ -147,6 +147,7 @@ interface Envio {
   law_references: LawReference[]
   location: [number, number] | { latitude: number; longitude: number }
   endereco: string
+  infracao_escolhida?: string | null
 }
 
 const envios = ref<Envio[]>([])
@@ -167,13 +168,20 @@ async function selecionarInfracao(ticket: string | null) {
   } else {
     novoStatus = 'verificado'
   }
-  // Atualiza no Firestore
-  await updateDoc(envioDocRef, { status: novoStatus })
+  // Atualiza no Firestore com status e infração escolhida
+  await updateDoc(envioDocRef, { 
+    status: novoStatus,
+    infracao_escolhida: ticket // Salva a infração escolhida
+  })
   // Atualiza localmente para refletir na UI
   selectedEnvio.value.status = novoStatus
+  selectedEnvio.value.infracao_escolhida = ticket
   // Também atualiza na lista principal
   const idx = envios.value.findIndex(e => e.id === selectedEnvio.value?.id)
-  if (idx !== -1) envios.value[idx].status = novoStatus
+  if (idx !== -1) {
+    envios.value[idx].status = novoStatus
+    envios.value[idx].infracao_escolhida = ticket
+  }
 }
 
 function openCard(envio: Envio) {
@@ -211,7 +219,8 @@ onMounted(async () => {
         ? data.infracao.law_references
         : Object.values(data.infracao?.law_references || {}),
       location: data.location,
-      endereco
+      endereco,
+      infracao_escolhida: data.infracao_escolhida || null
     }
   }))
 })
@@ -241,8 +250,8 @@ watch(selectedEnvio, async (envio) => {
       const mapDiv = document.getElementById(mapId)
       // @ts-ignore: _leaflet_id is an internal property
       if (mapDiv && !mapDiv._leaflet_id) {
-        const lat = envio.location.latitude ?? envio.location[0]
-        const lng = envio.location.longitude ?? envio.location[1]
+        const lat = Array.isArray(envio.location) ? envio.location[0] : envio.location.latitude
+        const lng = Array.isArray(envio.location) ? envio.location[1] : envio.location.longitude
         const map = L.map(mapId, {
           center: [lat, lng],
           zoom: 15,
