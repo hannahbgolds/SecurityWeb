@@ -1,38 +1,41 @@
 <template>
-  <LayoutWrapper>
-    <div class="page-container">
-      <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <!-- Gráfico de infrações ao longo do tempo -->
-        <div class="card-dashboard md:col-span-2">
-          <h2 class="card-title">Infrações ao longo do tempo</h2>
-          <client-only>
-            <VChartClient :option="optionInfracoesTempo" autoresize style="height: 320px" />
-          </client-only>
-        </div>
-
-        <!-- Gráfico de pizza - Distribuição de tipos de infração -->
-        <div class="card-dashboard">
-          <h2 class="card-title">Distribuição de tipos de infração</h2>
-          <client-only>
-            <VChartClient :option="optionTiposInfracao" autoresize style="height: 320px" />
-          </client-only>
-        </div>
-
-        <!-- Heatmap de localizações -->
-        <div class="card-dashboard">
-          <h2 class="card-title">Heatmap de infrações</h2>
-          <div id="heatmap" style="height: 320px; width: 100%; border-radius: 8px;"></div>
+  <div class="flex h-screen">
+    <div :class="isSidebarCollapsed ? 'page-container-collapsed' : 'page-container-expanded'">
+      <!-- Sidebar -->
+      <Sidebar :collapsed="isSidebarCollapsed" @update:collapsed="handleSidebarCollapse" />
+      <!-- Conteúdo -->
+      <div class="dashboard-content">
+        <h1 class="text-2xl font-bold mb-6">Dashboard</h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <!-- Gráfico de infrações ao longo do tempo -->
+          <div class="card-dashboard md:col-span-2">
+            <h2 class="card-title">Infrações ao longo do tempo</h2>
+            <client-only>
+              <VChartClient :option="optionInfracoesTempo" autoresize style="height: 320px" />
+            </client-only>
+          </div>
+          <!-- Gráfico de pizza - Distribuição de tipos de infração -->
+          <div class="card-dashboard">
+            <h2 class="card-title">Distribuição de tipos de infração</h2>
+            <client-only>
+              <VChartClient :option="optionTiposInfracao" autoresize style="height: 320px" />
+            </client-only>
+          </div>
+          <!-- Heatmap de localizações -->
+          <div class="card-dashboard">
+            <h2 class="card-title">Heatmap de infrações</h2>
+            <div id="heatmap" style="height: 320px; width: 100%; border-radius: 8px;"></div>
+          </div>
         </div>
       </div>
     </div>
-  </LayoutWrapper>
+  </div>
 </template>
 
 <script setup lang="ts">
-import LayoutWrapper from '~/components/LayoutWrapper.vue'
-import VChartClient from '~/components/VChartClient.vue'
 import { ref, onMounted } from 'vue'
+import Sidebar from '~/components/Sidebar.vue'
+import VChartClient from '~/components/VChartClient.vue'
 import { db } from '@/composables/useFirebase'
 import { collection, getDocs } from 'firebase/firestore'
 
@@ -59,6 +62,11 @@ interface EnvioData {
 
 let leafletMap: any = null; // fora do onMounted
 let leafletMarkers: any[] = []; // para guardar os marcadores
+
+const isSidebarCollapsed = ref(false)
+function handleSidebarCollapse(val: boolean) {
+  isSidebarCollapsed.value = val
+}
 
 onMounted(async () => {
   const enviosSnap = await getDocs(collection(db, 'Envios'))
@@ -218,10 +226,27 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.page-container {
+.page-container-expanded {
+  transition: padding-left 0.3s;
   padding-left: 240px;
   padding-right: 2rem;
   padding-top: 1.5rem;
+  height: 100vh;
+  display: flex;
+}
+.page-container-collapsed {
+  transition: padding-left 0.3s;
+  padding-left: 64px;
+  padding-right: 2rem;
+  padding-top: 1.5rem;
+  height: 100vh;
+  display: flex;
+}
+.dashboard-content {
+  flex: 1;
+  background: #fff;
+  color: #121212;
+  overflow-y: auto;
 }
 .card-dashboard {
   background: #fff;
