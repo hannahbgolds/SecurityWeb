@@ -39,15 +39,27 @@
     <p v-else>Nenhuma infração encontrada.</p>
 
     <p><strong>Vídeo:</strong></p>
-    <a
-      v-if="selectedEnvio?.videoURL"
-      :href="selectedEnvio.videoURL"
-      target="_blank"
-      class="text-blue-500 underline"
-    >
-      Ver vídeo
-    </a>
-    <p v-else>Sem vídeo disponível.</p>
+<div v-if="selectedEnvio?.videoURL" class="video-thumbnail-wrapper">
+  <div class="video-link" @click="dialogVideoVisible = true">
+    <video :src="selectedEnvio.videoURL" class="video-thumbnail" preload="metadata" />
+    <div class="video-overlay">▶</div>
+  </div>
+</div>
+<p v-else>Sem vídeo disponível.</p>
+
+<!-- Diálogo com o vídeo em tamanho maior -->
+<el-dialog v-model="dialogVideoVisible" width="30%" :before-close="() => (dialogVideoVisible = false)">
+  <template #title>Visualização do Vídeo</template>
+  <video
+    v-if="selectedEnvio?.videoURL"
+    :src="selectedEnvio.videoURL"
+    controls
+    autoplay
+    style="width: 100%; border-radius: 8px"
+  ></video>
+</el-dialog>
+
+
   </div>
 </el-drawer>
       </div>
@@ -67,6 +79,7 @@
   } from 'firebase/firestore'
   import { format } from 'date-fns'
   import { ptBR } from 'date-fns/locale'
+  
   
   interface Envio {
     id: string
@@ -90,6 +103,7 @@
   const envios = ref<Envio[]>([])
   const selectedEnvio = ref<Envio | null>(null)
   const drawerVisible = ref(false)
+  const dialogVideoVisible = ref(false)
   
   function handleRowClick(row: Envio) {
     selectedEnvio.value = row
@@ -143,7 +157,44 @@
   })
   </script>
   
-  <style scoped>
+
+<style scoped>
+.video-thumbnail-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 16 / 9;
+  margin-bottom: 1em;
+}
+
+.video-link {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+
+.video-thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.video-overlay {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 32px;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 8px 14px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
 .dashboard-content {
   padding-left: 64px;    
 }
