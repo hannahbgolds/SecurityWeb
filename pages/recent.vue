@@ -145,7 +145,7 @@ interface Envio {
   infracao: string
   possivel_infracao: string
   law_references: LawReference[]
-  location: [number, number]
+  location: [number, number] | { latitude: number; longitude: number }
   endereco: string
 }
 
@@ -154,6 +154,8 @@ const selectedEnvio = ref<Envio | null>(null)
 const cardFlutuanteVisivel = ref(false)
 const dialogVideoVisible = ref(false)
 const selectedInfracao = ref<string | null>(null)
+
+let L: any
 
 async function selecionarInfracao(ticket: string | null) {
   selectedInfracao.value = ticket
@@ -230,22 +232,26 @@ watch(selectedEnvio, (envio) => {
 watch(selectedEnvio, async (envio) => {
   if (envio && process.client && envio.location) {
     if (!L) {
-      L = await import('leaflet')
+      const leafletModule = await import('leaflet')
       await import('leaflet/dist/leaflet.css')
+      L = leafletModule.default || leafletModule
     }
     setTimeout(() => {
       const mapId = 'mini-map-' + envio.id
       const mapDiv = document.getElementById(mapId)
+      // @ts-ignore: _leaflet_id is an internal property
       if (mapDiv && !mapDiv._leaflet_id) {
+        const lat = envio.location.latitude ?? envio.location[0]
+        const lng = envio.location.longitude ?? envio.location[1]
         const map = L.map(mapId, {
-          center: [envio.location[0], envio.location[1]],
+          center: [lat, lng],
           zoom: 15,
           attributionControl: false
         })
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: ''
         }).addTo(map)
-        L.marker([envio.location[0], envio.location[1]]).addTo(map)
+        L.marker([lat, lng]).addTo(map)
       }
     }, 100)
   }
