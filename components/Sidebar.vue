@@ -41,7 +41,7 @@
   
         <el-menu-item index="/recent">
           <el-icon><Clock /></el-icon>
-          <template #title>Recent</template>
+          <template #title>Reportes recentes</template>
         </el-menu-item>
   
         <el-menu-item index="/settings">

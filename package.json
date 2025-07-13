@@ -10,6 +10,7 @@
     "postinstall": "nuxt prepare"
   },
   "dependencies": {
+    "date-fns": "^4.1.0",
     "element-plus": "^2.10.4",
     "firebase": "^11.10.0",
     "nuxt": "^3.17.6",
