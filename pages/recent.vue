@@ -32,11 +32,11 @@
             <p><strong>Placa:</strong> {{ selectedEnvio?.veiculo?.placa || '---' }}</p>
             <p><strong>Cor:</strong> {{ selectedEnvio?.veiculo?.cor || '---' }}</p>
   
-            <p><strong>Infrações:</strong></p>
+            <!-- <p><strong>Infrações:</strong></p>
             <ul v-if="selectedEnvio?.infracoes?.length">
               <li v-for="(i, index) in selectedEnvio.infracoes" :key="index">• {{ i }}</li>
             </ul>
-            <p v-else>Nenhuma infração encontrada.</p>
+            <p v-else>Nenhuma infração encontrada.</p> -->
 
             <!-- Dropdown de seleção de infração -->
             <div class="mt-4">
