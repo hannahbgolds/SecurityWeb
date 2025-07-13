@@ -36,27 +36,47 @@ onMounted(async () => {
   const envios = enviosSnap.docs.map(doc => doc.data())
 
   const porDia: Record<string, number> = {}
-  envios.forEach(e => {
-    let data: Date
-    if (e.timestamp?.toDate) {
-      data = e.timestamp.toDate()
-    } else if (e.date) {
-      data = new Date(e.date)
-    } else {
-      data = new Date()
-    }
-    const dia = data.toISOString().split('T')[0]
-    if (e.infracao?.law_references && e.infracao.law_references.length > 0) {
+  envios
+    .filter(e => ['analisado', 'verificado'].includes(e.status))
+    .forEach(e => {
+      let data: Date
+      if (e.timestamp?.toDate) {
+        data = e.timestamp.toDate()
+      } else if (typeof e.date === 'string') {
+        data = new Date(e.date)
+      } else if (e.date?.toDate) {
+        data = e.date.toDate()
+      } else {
+        data = new Date()
+      }
+      const dia = data.toISOString().split('T')[0]
+      console.log('contando envio:', e, 'law_references:', e.infracao?.law_references)
       porDia[dia] = (porDia[dia] || 0) + 1
-    }
-  })
+    })
   const dias = Object.keys(porDia).sort()
   optionInfracoesTempo.value = {
     tooltip: {},
     xAxis: { type: 'category', data: dias },
-    yAxis: { type: 'value' },
-    series: [{ type: 'line', data: dias.map(d => porDia[d]), name: 'Infrações' }]
+    yAxis: { type: 'value', min: 0, max: 2 }, // <-- ajuste aqui
+    series: [{
+      type: 'line',
+      data: dias.map(d => porDia[d]),
+      name: 'Infrações',
+      showSymbol: true,
+      symbol: 'circle',
+      symbolSize: 24,
+      itemStyle: { color: '#2563eb' },
+      lineStyle: { color: '#2563eb' },
+      emphasis: { focus: 'series' },
+      markPoint: {
+        data: [
+          { type: 'max', name: 'Máximo' },
+          { type: 'min', name: 'Mínimo' }
+        ]
+      }
+    }]
   }
+  console.log('envios verificados:', envios.filter(e => e.status === 'verificado'))
 })
 </script>
 
