@@ -22,26 +22,33 @@ import VChartClient from '~/components/VChartClient.vue'
 import { ref, onMounted } from 'vue'
 import { db } from '@/composables/useFirebase'
 import { collection, getDocs } from 'firebase/firestore'
-import { CanvasRenderer } from 'echarts/renderers'
-import * as echarts from 'echarts'
-import VChart from 'vue-echarts'
 
-// Registre o renderer
-echarts.use(CanvasRenderer)
+// REGISTRE O RENDERER E COMPONENTES AQUI:
+import { use } from 'echarts/core'
+import { CanvasRenderer } from 'echarts/renderers'
+import { TooltipComponent, GridComponent, TitleComponent, LegendComponent } from 'echarts/components'
+use([CanvasRenderer, TooltipComponent, GridComponent, TitleComponent, LegendComponent])
 
 const optionInfracoesTempo = ref({})
 
-async function carregarDados() {
-  // Buscar todas as infrações
-  const infracoesSnap = await getDocs(collection(db, 'Infracoes'))
-  const infracoes = infracoesSnap.docs.map(doc => doc.data())
+onMounted(async () => {
+  const enviosSnap = await getDocs(collection(db, 'Envios'))
+  const envios = enviosSnap.docs.map(doc => doc.data())
 
-  // Agrupar por data (por dia)
   const porDia: Record<string, number> = {}
-  infracoes.forEach(i => {
-    const data = String(i.dataAnalise || i.data || '')
-    const dia = data.split(' ')[0]
-    porDia[dia] = (porDia[dia] || 0) + 1
+  envios.forEach(e => {
+    let data: Date
+    if (e.timestamp?.toDate) {
+      data = e.timestamp.toDate()
+    } else if (e.date) {
+      data = new Date(e.date)
+    } else {
+      data = new Date()
+    }
+    const dia = data.toISOString().split('T')[0]
+    if (e.infracao?.law_references && e.infracao.law_references.length > 0) {
+      porDia[dia] = (porDia[dia] || 0) + 1
+    }
   })
   const dias = Object.keys(porDia).sort()
   optionInfracoesTempo.value = {
@@ -50,10 +57,6 @@ async function carregarDados() {
     yAxis: { type: 'value' },
     series: [{ type: 'line', data: dias.map(d => porDia[d]), name: 'Infrações' }]
   }
-}
-
-onMounted(() => {
-  carregarDados()
 })
 </script>
 
