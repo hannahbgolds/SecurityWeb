@@ -73,7 +73,8 @@
     collection,
     getDocs,
     query,
-    where
+    where,
+    doc as firestoreDoc
   } from 'firebase/firestore'
   import { format } from 'date-fns'
   import { ptBR } from 'date-fns/locale'
@@ -123,11 +124,15 @@
       })
   
       // 🔍 Infrações
-      const envioRef = `/Envios/${doc.id}`
-      console.log("🔍 Consultando infrações com envioRef:", envioRef)
+      const envioRef = firestoreDoc(db, 'Envios', doc.id)
+      console.log("🔍 Consultando infrações com envioRef (reference):", envioRef)
       const infraSnapshot = await getDocs(
         query(collection(db, 'Infracoes'), where('envioRef', '==', envioRef))
       )
+      console.log("🔍 Quantidade de infrações encontradas:", infraSnapshot.docs.length)
+      infraSnapshot.docs.forEach(d => {
+        console.log("🔍 Doc id:", d.id, "envioRef:", d.data().envioRef, "descricao:", d.data().descricao)
+      })
       const infracoes = infraSnapshot.docs.map(d => d.data().descricao)
   
       // 🔍 Veículo
