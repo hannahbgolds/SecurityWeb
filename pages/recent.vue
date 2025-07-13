@@ -1,82 +1,88 @@
 <template>
-    <div class="flex h-screen">
-      <!-- Sidebar -->
-      <Sidebar />
-  
-      <!-- Conteúdo -->
-      <div class="flex-1 dashboard-content overflow-auto bg-[#121212] text-white">
-        <h1 class="text-2xl font-bold mb-4">Envios</h1>
-  
-        <el-table
-          :data="envios"
-          stripe
-          style="width: 100%"
-          @row-click="handleRowClick"
-          highlight-current-row
-        >
-          <el-table-column prop="timestamp" label="Data" width="240" />
-          <el-table-column prop="endereco" label="Localização" />
-          <el-table-column prop="status" label="Status" width="120" />
-        </el-table>
-  
-        <!-- Drawer de detalhes -->
-        <el-drawer v-model="drawerVisible" direction="rtl" size="30%">
-          <template #title>
-            <div class="text-lg font-bold text-gray-800">
-              Data: {{ selectedEnvio?.timestamp }}
-            </div>
-          </template>
-  
-          <div class="text-sm text-gray-700 space-y-3">
-            <p><strong>Modelo:</strong> {{ selectedEnvio?.veiculo?.modelo || '---' }}</p>
-            <p><strong>Placa:</strong> {{ selectedEnvio?.veiculo?.placa || '---' }}</p>
-            <p><strong>Cor:</strong> {{ selectedEnvio?.veiculo?.cor || '---' }}</p>
-  
-            <!-- <p><strong>Infrações:</strong></p>
-            <ul v-if="selectedEnvio?.infracoes?.length">
-              <li v-for="(i, index) in selectedEnvio.infracoes" :key="index">• {{ i }}</li>
-            </ul>
-            <p v-else>Nenhuma infração encontrada.</p> -->
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <Sidebar />
 
-            <!-- Dropdown de seleção de infração -->
-            <div class="mt-4">
-              <el-select v-model="selectedInfracao" placeholder="Selecione uma infração" style="width: 100%">
-                <el-option
-                  v-for="(i, idx) in selectedEnvio?.infracoes"
-                  :key="idx"
-                  :label="i"
-                  :value="i"
-                />
-                <el-option label="Não houve infração." value="Não houve infração." />
-              </el-select>
-              <el-button type="primary" class="mt-2 w-full" @click="confirmarInfracao">Confirmar</el-button>
-            </div>
-  
-            <p><strong>Vídeo:</strong></p>
-            <div v-if="selectedEnvio?.videoURL" class="video-thumbnail-wrapper">
-              <div class="video-link" @click="dialogVideoVisible = true">
-                <video :src="selectedEnvio.videoURL" class="video-thumbnail" preload="metadata" />
-                <div class="video-overlay">▶</div>
-              </div>
-            </div>
-            <p v-else>Sem vídeo disponível.</p>
-  
-            <!-- Diálogo com o vídeo em tamanho maior -->
-            <el-dialog v-model="dialogVideoVisible" width="30%" :before-close="() => (dialogVideoVisible = false)">
-              <template #title>Visualização do Vídeo</template>
-              <video
-                v-if="selectedEnvio?.videoURL"
-                :src="selectedEnvio.videoURL"
-                controls
-                autoplay
-                style="width: 100%; border-radius: 8px"
-              ></video>
-            </el-dialog>
+    <!-- Conteúdo -->
+    <div class="flex-1 dashboard-content overflow-auto bg-[#121212] text-white">
+      <h1 class="text-2xl font-bold mb-4">Envios</h1>
+
+      <el-table
+        :data="envios"
+        stripe
+        style="width: 100%"
+        @row-click="handleRowClick"
+        highlight-current-row
+      >
+        <el-table-column prop="timestamp" label="Data" width="240" />
+        <el-table-column prop="endereco" label="Localização" />
+        <el-table-column prop="status" label="Status" width="120" />
+      </el-table>
+
+      <!-- Drawer de detalhes -->
+      <el-drawer v-model="drawerVisible" direction="rtl" size="30%">
+        <template #title>
+          <div class="text-lg font-bold text-gray-800">
+            Data: {{ selectedEnvio?.timestamp }}
           </div>
-        </el-drawer>
-      </div>
+        </template>
+
+        <div class="text-sm text-gray-700 space-y-3">
+          <p><strong>Modelo:</strong> {{ selectedEnvio?.veiculo?.modelo || '---' }}</p>
+          <p><strong>Placa:</strong> {{ selectedEnvio?.veiculo?.placa || '---' }}</p>
+          <p><strong>Cor:</strong> {{ selectedEnvio?.veiculo?.cor || '---' }}</p>
+
+          <!-- Dropdown de seleção de infração -->
+          <div class="mt-4">
+            <el-select
+  v-model="selectedInfracao"
+  placeholder="Selecione uma infração"
+  style="width: 100%"
+  :disabled="infracaoConfirmada"
+>
+      <el-option
+        v-for="(i, idx) in selectedEnvio?.infracoes"
+        :key="idx"
+        :label="i"
+        :value="i"
+      />
+      <el-option label="Não houve infração." value="Não houve infração." />
+    </el-select>
+
+    <el-button
+      class="mt-2 w-full"
+      :type="infracaoConfirmada ? 'success' : 'primary'"
+      @click="confirmarInfracao"
+    >
+      {{ infracaoConfirmada ? 'Confirmado' : 'Confirmar' }}
+    </el-button>
+          </div>
+
+          <p><strong>Vídeo:</strong></p>
+          <div v-if="selectedEnvio?.videoURL" class="video-thumbnail-wrapper">
+            <div class="video-link" @click="dialogVideoVisible = true">
+              <video :src="selectedEnvio.videoURL" class="video-thumbnail" preload="metadata" />
+              <div class="video-overlay">▶</div>
+            </div>
+          </div>
+          <p v-else>Sem vídeo disponível.</p>
+
+          <!-- Diálogo com o vídeo em tamanho maior -->
+          <el-dialog v-model="dialogVideoVisible" width="30%" :before-close="() => (dialogVideoVisible = false)">
+            <template #title>Visualização do Vídeo</template>
+            <video
+              v-if="selectedEnvio?.videoURL"
+              :src="selectedEnvio.videoURL"
+              controls
+              autoplay
+              style="width: 100%; border-radius: 8px"
+            ></video>
+          </el-dialog>
+        </div>
+      </el-drawer>
     </div>
-  </template>
+  </div>
+</template>
   
   <script setup lang="ts">
   import { ref, onMounted } from 'vue'
@@ -117,19 +123,30 @@
   const drawerVisible = ref(false)
   const dialogVideoVisible = ref(false)
   const selectedInfracao = ref<string>('')
+  const infracaoConfirmada = ref(false)
 
   function handleRowClick(row: Envio) {
     selectedEnvio.value = row
     drawerVisible.value = true
   }
 
+
   function confirmarInfracao() {
-    if (selectedEnvio.value) {
-      selectedEnvio.value.status = 'analisado'
-      // Aqui você pode adicionar lógica extra, como salvar no banco, se desejar
-    }
+  if (!selectedEnvio.value) return
+
+  // Alternar o estado local de confirmado
+  infracaoConfirmada.value = !infracaoConfirmada.value
+
+  // Mudar o status apenas na interface, localmente
+  selectedEnvio.value.status = infracaoConfirmada.value ? 'analisado' : 'pendente'
+
+  // Atualiza também na tabela principal
+  const index = envios.value.findIndex(e => e.id === selectedEnvio.value?.id)
+  if (index !== -1) {
+    envios.value[index].status = selectedEnvio.value.status
   }
-  
+}
+
   onMounted(async () => {
     const snapshot = await getDocs(collection(db, 'Envios'))
   
