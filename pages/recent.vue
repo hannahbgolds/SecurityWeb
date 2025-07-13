@@ -200,9 +200,9 @@ onMounted(async () => {
       timestamp: formattedDate,
       userID: data.userID,
       videoURL: data.videoURL,
-      modelo: data.infracao?.modelo || '',
-      placa: data.infracao?.placa || '',
-      cor: data.infracao?.cor || '',
+      modelo: data.infracao?.modelo || data.infracao?.Modelo || '',
+      placa: data.infracao?.placa || data.infracao?.Placa || '',
+      cor: data.infracao?.cor || data.infracao?.Cor || '',
       infracao: data.infracao,
       possivel_infracao: data['possível infração'] || data.possivel_infracao,
       law_references: Array.isArray(data.infracao?.law_references)
